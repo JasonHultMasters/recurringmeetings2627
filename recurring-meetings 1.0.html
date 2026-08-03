@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Recurring Meetings — Do It With Thy Might</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --purple: #4B0082;
+    --purple-mid: #6A0DAD;
+    --purple-light: #9B59B6;
+    --purple-pale: #E8D5F5;
+    --gold: #FFD700;
+    --gold-deep: #C9A800;
+    --gold-pale: #FFF9D6;
+    --white: #FAFAFA;
+    --dark: #1A0033;
+    --gray: #8B7AA0;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--dark); color: var(--white); font-family: 'DM Sans', sans-serif; min-height: 100vh; overflow-x: hidden; }
+  body::before { content: ''; position: fixed; inset: 0; background: radial-gradient(ellipse at 20% 20%, rgba(106,13,173,0.4) 0%, transparent 50%), radial-gradient(ellipse at 80% 80%, rgba(255,215,0,0.08) 0%, transparent 50%), radial-gradient(ellipse at 50% 50%, rgba(75,0,130,0.3) 0%, transparent 70%); pointer-events: none; z-index: 0; }
+  .container { position: relative; z-index: 1; max-width: 860px; margin: 0 auto; padding: 0 24px 80px; }
+  header { text-align: center; padding: 56px 0 40px; }
+  .motto { font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 0.3em; color: var(--gold); text-transform: uppercase; margin-bottom: 16px; }
+  h1 { font-family: 'Bebas Neue', sans-serif; font-size: clamp(56px, 10vw, 96px); line-height: 0.9; letter-spacing: 0.02em; color: var(--white); margin-bottom: 8px; }
+  h1 span { color: var(--gold); display: block; }
+  .subtitle { font-size: 14px; color: var(--purple-light); font-weight: 300; letter-spacing: 0.05em; margin-top: 16px; }
+  .gold-line { width: 80px; height: 3px; background: linear-gradient(90deg, var(--gold), var(--gold-deep)); margin: 24px auto; border-radius: 2px; }
+  .step { background: rgba(75, 0, 130, 0.2); border: 1px solid rgba(155, 89, 182, 0.25); border-radius: 16px; padding: 32px; margin-bottom: 20px; backdrop-filter: blur(10px); transition: border-color 0.3s; animation: fadeUp 0.5s ease both; }
+  .step:hover { border-color: rgba(255, 215, 0, 0.3); }
+  .step:nth-child(1){animation-delay:0.1s}.step:nth-child(2){animation-delay:0.2s}.step:nth-child(3){animation-delay:0.3s}
+  .step-label { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.3em; color: var(--gold); text-transform: uppercase; margin-bottom: 8px; }
+  .step h2 { font-family: 'Bebas Neue', sans-serif; font-size: 28px; letter-spacing: 0.05em; color: var(--white); margin-bottom: 20px; }
+  select, input[type="text"], input[type="time"], input[type="date"] { width: 100%; background: rgba(26, 0, 51, 0.6); border: 1px solid rgba(155, 89, 182, 0.4); border-radius: 10px; color: var(--white); font-family: 'DM Sans', sans-serif; font-size: 15px; padding: 14px 16px; outline: none; transition: border-color 0.3s; -webkit-appearance: none; }
+  select:focus, input:focus { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(255,215,0,0.1); }
+  select option { background: #2a004d; }
+  .meeting-row { display: grid; grid-template-columns: 1fr 1fr 1fr 40px; gap: 10px; align-items: end; margin-bottom: 10px; }
+  .meeting-row label { font-size: 12px; color: var(--gray); margin-bottom: 4px; display: block; }
+  .day-checkboxes { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+  .day-check { display: none; }
+  .day-label { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 36px; border: 1px solid rgba(155,89,182,0.4); border-radius: 8px; font-size: 12px; font-family: 'DM Mono', monospace; cursor: pointer; transition: all 0.2s; color: var(--purple-light); }
+  .day-check:checked + .day-label { background: var(--gold); color: var(--dark); border-color: var(--gold); font-weight: 600; }
+  .btn-add { background: transparent; border: 1px dashed rgba(155,89,182,0.5); color: var(--purple-light); padding: 10px 20px; border-radius: 8px; cursor: pointer; font-family: 'DM Sans', sans-serif; font-size: 13px; transition: all 0.2s; margin-top: 8px; }
+  .btn-add:hover { border-color: var(--gold); color: var(--gold); }
+  .btn-remove { background: transparent; border: none; color: rgba(155,89,182,0.6); font-size: 20px; cursor: pointer; padding: 8px; border-radius: 6px; transition: color 0.2s; line-height: 1; }
+  .btn-remove:hover { color: #ff6b6b; }
+  .date-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 12px; }
+  input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(0.7) sepia(1) saturate(3) hue-rotate(300deg); }
+  .btn-export { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; padding: 22px 16px; border-radius: 14px; cursor: pointer; font-family: 'DM Sans', sans-serif; font-size: 16px; font-weight: 600; transition: all 0.25s; border: none; letter-spacing: 0.02em; background: linear-gradient(135deg, var(--purple-mid), var(--purple)); color: var(--gold); border: 1px solid rgba(255,215,0,0.3); }
+  .btn-export:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(106,13,173,0.5); border-color: var(--gold); }
+  .btn-export .icon { font-size: 24px; }
+  .status-msg { text-align: center; padding: 12px; border-radius: 8px; font-size: 13px; margin-top: 12px; display: none; }
+  .status-success { background: rgba(127,214,127,0.15); color: #7FD67F; border: 1px solid rgba(127,214,127,0.3); }
+  .status-error { background: rgba(255,100,100,0.15); color: #FF8080; border: 1px solid rgba(255,100,100,0.3); }
+  .block-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 8px; }
+  .block-table th { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gold); padding: 8px 6px; text-align: center; border-bottom: 1px solid rgba(155,89,182,0.3); background: rgba(75,0,130,0.25); white-space: nowrap; }
+  .block-table td { padding: 8px 6px; text-align: center; border-bottom: 1px solid rgba(75,0,130,0.2); color: rgba(250,250,250,0.85); }
+  .block-table .row-label { text-align: left; font-family: 'DM Mono', monospace; font-size: 10.5px; color: var(--gray); white-space: nowrap; padding-right: 12px; }
+  .block-letter { display: inline-block; min-width: 22px; padding: 2px 6px; border-radius: 6px; background: rgba(255,215,0,0.12); color: var(--gold); font-weight: 600; }
+  .block-special { color: var(--purple-light); font-size: 11px; }
+  .block-note { font-size: 11.5px; color: var(--gray); margin-top: 10px; line-height: 1.6; }
+  footer { text-align: center; padding: 32px 0 0; font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 0.2em; color: rgba(155,89,182,0.4); text-transform: uppercase; }
+  @media (max-width: 600px) { .date-inputs { grid-template-columns: 1fr; } .meeting-row { grid-template-columns: 1fr 1fr; } .meeting-row > div:first-child { grid-column: 1/-1; } }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="motto">✦ Do It With Thy Might ✦</div>
+    <h1>RECURRING<span>MEETINGS</span></h1>
+    <div class="subtitle">2026–2027 · Meetings on the 8-day rotation — imported to Outlook in seconds</div>
+    <div class="gold-line"></div>
+  </header>
+
+  <!-- STEP 1: Recurring Meetings -->
+  <div class="step">
+    <div class="step-label">Step 01</div>
+    <h2>Add Recurring Meetings</h2>
+    <p style="font-size:13px;color:var(--gray);margin-bottom:8px;">Add each meeting that repeats on specific rotation days (Day 1–8), or on regular weekdays. Every meeting only lands on actual school days. Pick a day first — the block list then shows exactly what's meeting in each slot that day.</p>
+    <p class="block-note" style="margin-bottom:16px;">Meetings landing on a Two-Hour Delay day (Oct 14, Nov 11, Dec 2, 2026 or Feb 24, 2027) get flagged <strong style="color:var(--gold);">LATE START</strong> in the title, with times shifted automatically. Meetings on Oct 30, 2026 or Mar 2 &amp; 5, 2027 get flagged <strong style="color:var(--gold);">CHECK 4 SPECIAL SCHED.</strong> — those run a modified schedule too, but times aren't auto-adjusted.</p>
+    <div id="meetingsContainer"></div>
+    <button class="btn-add" onclick="addMeeting()">+ Add Recurring Meeting</button>
+  </div>
+
+  <!-- STEP 2: Export -->
+  <div class="step">
+    <div class="step-label">Step 02</div>
+    <h2>Generate & Export</h2>
+    <button class="btn-export" onclick="generateICS()">
+      <span class="icon">📅</span>
+      Download ICS — Import to Outlook
+    </button>
+    <div class="status-msg status-success" id="statusSuccess"></div>
+    <div class="status-msg status-error" id="statusError"></div>
+    <div id="resultsPanel" style="display:none;margin-top:16px;"></div>
+  </div>
+
+  <!-- Outlook Instructions -->
+  <div style="margin-top:12px;">
+    <div style="background:rgba(75,0,130,0.15);border:1px solid rgba(155,89,182,0.2);border-radius:16px;padding:32px;">
+      <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.3em;color:var(--gold);text-transform:uppercase;margin-bottom:8px;">How To</div>
+      <h2 style="font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:0.05em;color:var(--white);margin-bottom:24px;">Importing Into Outlook</h2>
+
+      <p style="font-size:13px;color:rgba(250,250,250,0.7);margin-bottom:24px;line-height:1.7;">
+        Once you've downloaded your <strong style="color:var(--white)">.ics file</strong>, you have two ways to bring it into Outlook.
+      </p>
+
+      <div style="border:1px solid rgba(255,215,0,0.25);border-radius:12px;padding:20px;margin-bottom:16px;background:rgba(255,215,0,0.04);">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+          <span style="background:var(--gold);color:var(--dark);font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:0.05em;padding:2px 12px;border-radius:6px;">Option A</span>
+          <span style="font-size:15px;font-weight:600;color:var(--white);">Import to Your Primary Calendar</span>
+        </div>
+        <p style="font-size:13px;color:rgba(250,250,250,0.75);line-height:1.7;margin-bottom:12px;">
+          Adds events directly into your main calendar. Simple, but to remove them later you'll need to delete each event one at a time.
+        </p>
+        <ol style="font-size:13px;color:rgba(250,250,250,0.75);line-height:2;padding-left:20px;">
+          <li>Open Outlook and go to <strong style="color:var(--white)">File → Open &amp; Export → Import/Export</strong></li>
+          <li>Choose <strong style="color:var(--white)">Import an iCalendar (.ics) or vCalendar file</strong> and click Next</li>
+          <li>Browse to your downloaded <strong style="color:var(--white)">.ics file</strong> and select it</li>
+          <li>Click <strong style="color:var(--white)">Import</strong></li>
+        </ol>
+      </div>
+
+      <div style="border:1px solid rgba(155,89,182,0.35);border-radius:12px;padding:20px;margin-bottom:8px;background:rgba(106,13,173,0.1);">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+          <span style="background:var(--purple-mid);color:var(--white);font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:0.05em;padding:2px 12px;border-radius:6px;">Option B</span>
+          <span style="font-size:15px;font-weight:600;color:var(--white);">Add as a Separate Calendar</span>
+        </div>
+        <p style="font-size:13px;color:rgba(250,250,250,0.75);line-height:1.7;margin-bottom:12px;">
+          Creates a new calendar layer you can show, hide, or <strong style="color:var(--white)">delete all at once</strong> — recommended if you'll re-import each semester.
+        </p>
+        <ol style="font-size:13px;color:rgba(250,250,250,0.75);line-height:2;padding-left:20px;">
+          <li>Open Outlook's <strong style="color:var(--white)">Calendar</strong> view</li>
+          <li>Right-click <strong style="color:var(--white)">My Calendars</strong> → <strong style="color:var(--white)">Add Calendar → Create New Blank Calendar</strong></li>
+          <li>Name it, e.g. <strong style="color:var(--white)">"Spring Meetings"</strong></li>
+          <li>Right-click it → <strong style="color:var(--white)">Import</strong>, then select your <strong style="color:var(--white)">.ics file</strong></li>
+        </ol>
+      </div>
+
+      <div style="border-top:1px solid rgba(155,89,182,0.2);padding-top:20px;margin-top:8px;">
+        <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.2em;color:var(--gray);text-transform:uppercase;margin-bottom:10px;">Inviting Others</div>
+        <p style="font-size:13px;color:rgba(250,250,250,0.7);line-height:1.7;margin-bottom:14px;">
+          Imported events land on your calendar only — they don't come with attendees built in. To bring other people onto a meeting, open that event in Outlook and use <strong style="color:var(--white)">Invite Attendees</strong> (or the <strong style="color:var(--white)">Scheduling Assistant</strong>) to add them, then send the update. Since each recurring meeting imports as a separate event rather than a single Outlook series, you'll need to do this on each occurrence you want shared — there's no one click that invites people to the whole run at once.
+        </p>
+        <p style="font-size:13px;color:rgba(250,250,250,0.7);line-height:1.7;margin-bottom:14px;">
+          Two things make that faster:
+        </p>
+        <ul style="font-size:13px;color:rgba(250,250,250,0.7);line-height:1.9;padding-left:20px;margin-bottom:0;">
+          <li><strong style="color:var(--white)">Search + List view</strong> — in Outlook's Calendar search bar, type <code style="background:rgba(0,0,0,0.25);padding:1px 6px;border-radius:4px;">subject:"Meeting Name"</code> and press Enter. Results switch to List view as a flat, clickable list instead of scattered across the month grid, so you can move through every occurrence quickly.</li>
+          <li><strong style="color:var(--white)">A Contact Group</strong> for the recurring attendees — set one up once under <strong style="color:var(--white)">People → New Contact Group</strong> (e.g. "Dept Chairs Committee"). Then for each event, just type that group's name into Invite Attendees instead of re-adding people individually every time.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <footer>Recurring Meetings ✦ Do It With Thy Might</footer>
+</div>
+
+<script>
+// ─── Rotation-day calendar (2026-2027 school year) ─────────
+const DATE_TO_DAY = {"9/10/2026": 1, "9/11/2026": 2, "9/14/2026": 3, "9/15/2026": 4, "9/16/2026": 5, "9/17/2026": 6, "9/18/2026": 7, "9/22/2026": 8, "9/23/2026": 1, "9/24/2026": 2, "9/25/2026": 3, "9/28/2026": 4, "9/29/2026": 5, "9/30/2026": 6, "10/01/2026": 7, "10/02/2026": 8, "10/05/2026": 1, "10/06/2026": 2, "10/07/2026": 3, "10/08/2026": 4, "10/09/2026": 5, "10/13/2026": 6, "10/14/2026": 7, "10/15/2026": 8, "10/16/2026": 1, "10/19/2026": 2, "10/20/2026": 3, "10/21/2026": 4, "10/22/2026": 5, "10/26/2026": 6, "10/27/2026": 7, "10/28/2026": 8, "10/29/2026": 1, "10/30/2026": 2, "11/02/2026": 3, "11/03/2026": 4, "11/04/2026": 5, "11/05/2026": 6, "11/06/2026": 7, "11/09/2026": 8, "11/10/2026": 1, "11/11/2026": 2, "11/12/2026": 3, "11/13/2026": 4, "11/16/2026": 5, "11/17/2026": 6, "11/18/2026": 7, "11/19/2026": 8, "11/30/2026": 1, "12/01/2026": 2, "12/02/2026": 3, "12/03/2026": 4, "12/04/2026": 5, "12/07/2026": 6, "12/08/2026": 7, "12/09/2026": 8, "12/10/2026": 1, "12/11/2026": 2, "12/14/2026": 3, "12/15/2026": 4, "12/16/2026": 5, "12/17/2026": 6, "12/18/2026": 7, "1/05/2027": 8, "1/06/2027": 1, "1/07/2027": 2, "1/08/2027": 3, "1/11/2027": 4, "1/12/2027": 5, "1/13/2027": 6, "1/14/2027": 7, "1/15/2027": 8, "1/25/2027": 1, "1/26/2027": 2, "1/27/2027": 3, "1/28/2027": 4, "1/29/2027": 5, "2/01/2027": 6, "2/02/2027": 7, "2/04/2027": 8, "2/05/2027": 1, "2/08/2027": 2, "2/09/2027": 3, "2/10/2027": 4, "2/11/2027": 5, "2/12/2027": 6, "2/17/2027": 7, "2/18/2027": 8, "2/19/2027": 1, "2/22/2027": 2, "2/23/2027": 3, "2/24/2027": 4, "2/25/2027": 5, "2/26/2027": 6, "3/01/2027": 7, "3/02/2027": 8, "3/03/2027": 1, "3/04/2027": 2, "3/05/2027": 3, "3/08/2027": 4, "3/09/2027": 5, "3/10/2027": 6, "3/11/2027": 7, "3/12/2027": 8, "3/30/2027": 1, "3/31/2027": 2, "4/01/2027": 3, "4/02/2027": 4, "4/05/2027": 5, "4/06/2027": 6, "4/07/2027": 7, "4/08/2027": 8, "4/09/2027": 1, "4/12/2027": 2, "4/13/2027": 3, "4/14/2027": 4, "4/15/2027": 5, "4/16/2027": 6, "4/19/2027": 7, "4/20/2027": 8, "4/21/2027": 1, "4/23/2027": 2, "4/26/2027": 3, "4/27/2027": 4, "4/28/2027": 5, "4/29/2027": 6, "4/30/2027": 7, "5/03/2027": 8, "5/04/2027": 1, "5/05/2027": 2, "5/06/2027": 3, "5/07/2027": 4, "5/10/2027": 5, "5/11/2027": 6, "5/12/2027": 7, "5/13/2027": 8, "5/14/2027": 1, "5/17/2027": 2, "5/18/2027": 3, "5/19/2027": 4, "5/20/2027": 5, "5/21/2027": 6, "5/24/2027": 7, "5/25/2027": 8, "5/26/2027": 1, "5/27/2027": 2, "5/28/2027": 3, "6/01/2027": 4, "6/02/2027": 5, "6/03/2027": 6, "6/04/2027": 7};
+
+const SEASON_DEFAULT_FROM = '2026-09-10';
+const SEASON_DEFAULT_TO   = '2027-06-04';
+
+// ─── Upper School block schedule (reference + meeting placement) ──
+// Source: Upper School bell schedule. Block letter per period rotates
+// across Day 1–8; Masters Time alternates Morning Meeting / Advisory.
+const BLOCK_SCHEDULE = [
+  { key: 'xband',   label: 'X-Band',              time: '8:00–8:30',   start: '08:00', end: '08:30', special: true },
+  { key: 'p1',      label: 'Period 1',            time: '8:30–9:50',   start: '08:30', end: '09:50', lettersByDay: {1:'A',2:'E',3:'C',4:'G',5:'B',6:'F',7:'D',8:'H'} },
+  { key: 'masters', label: 'Masters Time',        time: '9:50–10:20',  start: '09:50', end: '10:20', altByDay: {1:'Morning Meeting',2:'Advisory',3:'Morning Meeting',4:'Advisory',5:'Morning Meeting',6:'Advisory',7:'Morning Meeting',8:'Advisory'} },
+  { key: 'break',   label: 'Break',               time: '10:20–10:30', start: '10:20', end: '10:30', special: true },
+  { key: 'p2',      label: 'Period 2',            time: '10:30–11:50', start: '10:30', end: '11:50', lettersByDay: {1:'B',2:'F',3:'D',4:'H',5:'A',6:'E',7:'C',8:'G'} },
+  { key: 'lunch3',  label: 'Lunch & Period 3',    time: '11:50–1:50 *',start: '11:50', end: '13:50', lettersByDay: {1:'C',2:'G',3:'A',4:'E',5:'D',6:'H',7:'B',8:'F'} },
+  { key: 'p4',      label: 'Period 4',            time: '1:50–3:10',   start: '13:50', end: '15:10', lettersByDay: {1:'D',2:'H',3:'B',4:'F',5:'C',6:'G',7:'A',8:'E'} },
+  { key: 'clubs',   label: 'Clubs',               time: '3:10–3:45',   start: '15:10', end: '15:45', special: true },
+  { key: 'panther', label: 'Panther Time',        time: '3:45–5:00',   start: '15:45', end: '17:00', special: true },
+];
+
+// Dates that are normal rotation days but run on a modified bell schedule
+// (Two-Hour Delay, assemblies, Revisit Days) — meetings landing here get flagged.
+const SPECIAL_SCHEDULE_DATES = {
+  '10/14/2026': 'Two-Hour Delay',
+  '10/30/2026': 'Halloween Assembly - Special Schedule',
+  '11/11/2026': 'Two-Hour Delay',
+  '12/02/2026': 'Two-Hour Delay',
+  '2/24/2027':  'Two-Hour Delay',
+  '3/02/2027':  'Revisit Day - Special Schedule',
+  '3/05/2027':  'Revisit Day - Special Schedule',
+};
+
+// Actual bell times on Two-Hour Delay days, for the periods that shift.
+// X-Band, Masters Time, and Break don't run that morning; Clubs/Panther
+// Time are unaffected and keep their normal times.
+const DELAY_BLOCK_TIMES = {
+  p1:     { start: '10:00', end: '11:05' },
+  p2:     { start: '11:10', end: '12:15' },
+  lunch3: { start: '12:20', end: '14:20' }, // spans both lunch/class wave orders
+  p4:     { start: '14:20', end: '15:30' },
+};
+
+function timeToMinutes(t) {
+  const [h, m] = t.split(':').map(Number);
+  return h * 60 + m;
+}
+function minutesToTime(mins) {
+  mins = ((mins % 1440) + 1440) % 1440;
+  const h = Math.floor(mins / 60), m = mins % 60;
+  return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+}
+
+let meetingCount = 0;
+
+function normalizeDate(d) {
+  // input: "2/23/2026" → "2026-02-23"
+  const m = d.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (m) return `${m[3]}-${m[1].padStart(2,'0')}-${m[2].padStart(2,'0')}`;
+  return d;
+}
+
+// Normalized (YYYY-MM-DD) lookup for special-schedule dates
+const SPECIAL_SCHEDULE_NORM = {};
+Object.entries(SPECIAL_SCHEDULE_DATES).forEach(([k, v]) => {
+  SPECIAL_SCHEDULE_NORM[normalizeDate(k)] = v;
+});
+
+// Normalized (YYYY-MM-DD) → rotation day number, for building descriptions
+const NORM_TO_DAY = {};
+Object.entries(DATE_TO_DAY).forEach(([k, v]) => {
+  NORM_TO_DAY[normalizeDate(k)] = v;
+});
+
+function formatDateDisplay(dateNorm) {
+  const d = new Date(dateNorm + 'T00:00:00');
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
+// Subset of the above that specifically run the Two-Hour Delay bell times
+const DELAY_DATES_NORM = new Set(
+  Object.entries(SPECIAL_SCHEDULE_DATES)
+    .filter(([, reason]) => reason === 'Two-Hour Delay')
+    .map(([k]) => normalizeDate(k))
+);
+
+// Computes a meeting's actual start/end for one specific occurrence date,
+// using the Two-Hour Delay times when that date calls for it.
+function computeStartEndForDate(m, dateNorm) {
+  if (m.blockKey === 'custom') {
+    const startMin = timeToMinutes(m.customStart || '15:30');
+    return { start: minutesToTime(startMin), end: minutesToTime(startMin + m.duration) };
+  }
+  let blockStart;
+  if (DELAY_DATES_NORM.has(dateNorm) && DELAY_BLOCK_TIMES[m.blockKey]) {
+    blockStart = DELAY_BLOCK_TIMES[m.blockKey].start;
+  } else {
+    const block = BLOCK_SCHEDULE.find(b => b.key === m.blockKey);
+    blockStart = block ? block.start : '15:30';
+  }
+  const startMin = timeToMinutes(blockStart) + (m.offset || 0);
+  return { start: minutesToTime(startMin), end: minutesToTime(startMin + m.duration) };
+}
+
+// ─── Recurring Meetings UI ─────────────────────────────────
+function addMeeting() {
+  const id = meetingCount++;
+  const div = document.createElement('div');
+  div.id = `meeting-${id}`;
+  div.style.cssText = 'background:rgba(75,0,130,0.15);border:1px solid rgba(155,89,182,0.2);border-radius:10px;padding:16px;margin-bottom:12px;';
+  div.innerHTML = `
+    <div class="meeting-row" style="grid-template-columns:1fr 40px;">
+      <div><label>Meeting Name</label><input type="text" placeholder="e.g. Dept Chairs" id="mname-${id}"></div>
+      <button class="btn-remove" onclick="removeMeeting(${id})" title="Remove">×</button>
+    </div>
+
+    <div style="margin-top:14px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+        <label style="font-size:11px;font-family:'DM Mono',monospace;letter-spacing:0.15em;text-transform:uppercase;color:var(--gold);">1 · Which Day(s)</label>
+        <div style="display:flex;background:rgba(26,0,51,0.5);border:1px solid rgba(155,89,182,0.4);border-radius:8px;overflow:hidden;">
+          <button onclick="setMeetingMode(${id},'rotation')" id="mmode-rotation-${id}"
+            style="padding:5px 14px;font-size:11px;font-family:'DM Mono',monospace;letter-spacing:0.1em;cursor:pointer;border:none;transition:all 0.2s;background:var(--gold);color:var(--dark);font-weight:600;">
+            ROTATION
+          </button>
+          <button onclick="setMeetingMode(${id},'weekday')" id="mmode-weekday-${id}"
+            style="padding:5px 14px;font-size:11px;font-family:'DM Mono',monospace;letter-spacing:0.1em;cursor:pointer;border:none;transition:all 0.2s;background:transparent;color:var(--purple-light);">
+            MON–FRI
+          </button>
+        </div>
+      </div>
+      <div id="rotation-panel-${id}" class="day-checkboxes">
+        ${[1,2,3,4,5,6,7,8].map(d => `
+          <input type="checkbox" class="day-check" id="day-${id}-${d}" value="${d}" onchange="refreshBlockOptions(${id})">
+          <label class="day-label" for="day-${id}-${d}">D${d}</label>
+        `).join('')}
+      </div>
+      <div id="weekday-panel-${id}" class="day-checkboxes" style="display:none;">
+        ${[['Mon',1],['Tue',2],['Wed',3],['Thu',4],['Fri',5]].map(([name,val]) => `
+          <input type="checkbox" class="day-check" id="wday-${id}-${val}" value="${val}" onchange="refreshBlockOptions(${id})">
+          <label class="day-label" for="wday-${id}-${val}" style="width:48px;">${name}</label>
+        `).join('')}
+      </div>
+      <input type="hidden" id="mmode-${id}" value="rotation">
+      <div style="margin-top:10px;">
+        <label style="font-size:11px;color:var(--gray);margin-bottom:4px;display:block;">Repeats</label>
+        <select id="minterval-${id}" style="max-width:220px;">
+          <option value="1">Every time</option>
+          <option value="2">Every other cycle</option>
+          <option value="3">Every 3rd cycle</option>
+          <option value="4">Every 4th cycle</option>
+          <option value="5">Every 5th cycle</option>
+          <option value="6">Every 6th cycle</option>
+        </select>
+      </div>
+    </div>
+
+    <div style="margin-top:16px;">
+      <label style="font-size:11px;font-family:'DM Mono',monospace;letter-spacing:0.15em;text-transform:uppercase;color:var(--gold);display:block;margin-bottom:6px;">2 · Which Block</label>
+      <select id="mblock-${id}" onchange="onBlockChange(${id})"></select>
+      <p id="block-hint-${id}" class="block-note" style="margin-top:6px;"></p>
+    </div>
+
+    <div style="margin-top:14px;">
+      <label style="font-size:11px;font-family:'DM Mono',monospace;letter-spacing:0.15em;text-transform:uppercase;color:var(--gold);display:block;margin-bottom:6px;">3 · Time Within the Block</label>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div id="offset-wrap-${id}">
+          <label style="font-size:12px;color:var(--gray);margin-bottom:4px;display:block;">Starts (min into block)</label>
+          <input type="number" id="moffset-${id}" value="0" min="0" style="padding:14px 16px;">
+        </div>
+        <div>
+          <label style="font-size:12px;color:var(--gray);margin-bottom:4px;display:block;">Duration (min)</label>
+          <input type="number" id="mduration-${id}" value="45" min="5" style="padding:14px 16px;">
+        </div>
+      </div>
+      <div id="custom-time-wrap-${id}" style="display:none;margin-top:10px;">
+        <label style="font-size:12px;color:var(--gray);margin-bottom:4px;display:block;">Start Time</label>
+        <input type="time" id="mcustomstart-${id}" value="15:30" style="padding:14px 16px;">
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px;">
+      <div>
+        <label style="font-size:11px;font-family:'DM Mono',monospace;letter-spacing:0.15em;text-transform:uppercase;color:var(--gold);display:block;margin-bottom:6px;">Season Start</label>
+        <input type="date" id="mfrom-${id}" value="${SEASON_DEFAULT_FROM}" style="padding:10px 12px;font-size:13px;">
+      </div>
+      <div>
+        <label style="font-size:11px;font-family:'DM Mono',monospace;letter-spacing:0.15em;text-transform:uppercase;color:var(--gold);display:block;margin-bottom:6px;">Season End</label>
+        <input type="date" id="mto-${id}" value="${SEASON_DEFAULT_TO}" style="padding:10px 12px;font-size:13px;">
+      </div>
+    </div>
+
+    <div style="margin-top:14px;">
+      <label style="font-size:11px;font-family:'DM Mono',monospace;letter-spacing:0.15em;text-transform:uppercase;color:var(--gold);display:block;margin-bottom:6px;">Notes (optional)</label>
+      <textarea id="mnotes-${id}" placeholder="e.g. Google Doc, running agenda, etc" style="width:100%;background:rgba(26,0,51,0.6);border:1px solid rgba(155,89,182,0.4);border-radius:10px;color:var(--white);font-family:'DM Sans',sans-serif;font-size:14px;padding:12px 14px;min-height:60px;resize:vertical;outline:none;"></textarea>
+      <p style="font-size:11.5px;color:var(--gray);margin-top:6px;">This same text is added to every occurrence of this meeting.</p>
+    </div>`;
+  document.getElementById('meetingsContainer').appendChild(div);
+  refreshBlockOptions(id);
+}
+
+// Rebuilds the Block dropdown so its options show the actual subject
+// letter (or Morning Meeting/Advisory) for whichever day(s) are picked.
+function refreshBlockOptions(id) {
+  const select = document.getElementById(`mblock-${id}`);
+  if (!select) return;
+  const mode = document.getElementById(`mmode-${id}`)?.value || 'rotation';
+  const days = mode === 'rotation'
+    ? [...document.querySelectorAll(`[id^="day-${id}-"]:checked`)].map(c => parseInt(c.value)).sort((a,b)=>a-b)
+    : [];
+
+  function optionLabel(block) {
+    if (block.special) return `${block.label} ${block.time}`;
+    if (mode === 'weekday' || !days.length) return `${block.label} ${block.time}`;
+    const letters = [...new Set(days.map(d =>
+      block.lettersByDay ? block.lettersByDay[d] : (block.altByDay ? block.altByDay[d] : block.label)
+    ))];
+    return `${letters.join('/')} ${block.time}`;
+  }
+
+  const prevValue = select.value || 'panther';
+  select.innerHTML = BLOCK_SCHEDULE.map(b => `<option value="${b.key}">${optionLabel(b)}</option>`).join('') +
+    `<option value="custom">Custom time</option>`;
+  select.value = [...select.options].some(o => o.value === prevValue) ? prevValue : 'panther';
+  onBlockChange(id);
+}
+
+function onBlockChange(id) {
+  const blockKey = document.getElementById(`mblock-${id}`).value;
+  const offsetWrap = document.getElementById(`offset-wrap-${id}`);
+  const customWrap = document.getElementById(`custom-time-wrap-${id}`);
+  if (blockKey === 'custom') {
+    offsetWrap.style.display = 'none';
+    customWrap.style.display = 'block';
+  } else {
+    offsetWrap.style.display = 'block';
+    customWrap.style.display = 'none';
+  }
+  const hintEl = document.getElementById(`block-hint-${id}`);
+  if (hintEl) {
+    hintEl.textContent = blockKey === 'lunch3'
+      ? 'Runs as either Lunch 11:50–12:30 then class 12:30–1:50, or class 11:50–1:10 then Lunch 1:10–1:50, depending on the wave.'
+      : '';
+  }
+}
+
+function setMeetingMode(id, mode) {
+  document.getElementById(`mmode-${id}`).value = mode;
+  const isRotation = mode === 'rotation';
+  document.getElementById(`rotation-panel-${id}`).style.display = isRotation ? 'flex' : 'none';
+  document.getElementById(`weekday-panel-${id}`).style.display  = isRotation ? 'none' : 'flex';
+  document.getElementById(`mmode-rotation-${id}`).style.background = isRotation ? 'var(--gold)' : 'transparent';
+  document.getElementById(`mmode-rotation-${id}`).style.color = isRotation ? 'var(--dark)' : 'var(--purple-light)';
+  document.getElementById(`mmode-rotation-${id}`).style.fontWeight = isRotation ? '600' : '400';
+  document.getElementById(`mmode-weekday-${id}`).style.background = !isRotation ? 'var(--gold)' : 'transparent';
+  document.getElementById(`mmode-weekday-${id}`).style.color = !isRotation ? 'var(--dark)' : 'var(--purple-light)';
+  document.getElementById(`mmode-weekday-${id}`).style.fontWeight = !isRotation ? '600' : '400';
+  refreshBlockOptions(id);
+}
+
+function removeMeeting(id) {
+  const el = document.getElementById(`meeting-${id}`);
+  if (el) el.remove();
+}
+
+function getRecurringMeetings() {
+  const meetings = [];
+  document.querySelectorAll('[id^="mname-"]').forEach(el => {
+    const id = el.id.split('-')[1];
+    const name = el.value.trim();
+    const blockKey = document.getElementById(`mblock-${id}`)?.value || 'custom';
+    const offset = parseInt(document.getElementById(`moffset-${id}`)?.value) || 0;
+    const duration = parseInt(document.getElementById(`mduration-${id}`)?.value) || 45;
+    const customStart = document.getElementById(`mcustomstart-${id}`)?.value || '15:30';
+    const mode = document.getElementById(`mmode-${id}`)?.value || 'rotation';
+    const interval = parseInt(document.getElementById(`minterval-${id}`)?.value) || 1;
+    const seasonFrom = document.getElementById(`mfrom-${id}`)?.value || SEASON_DEFAULT_FROM;
+    const seasonTo   = document.getElementById(`mto-${id}`)?.value   || SEASON_DEFAULT_TO;
+    const notes = document.getElementById(`mnotes-${id}`)?.value.trim() || '';
+    if (mode === 'rotation') {
+      const days = [...document.querySelectorAll(`[id^="day-${id}-"]:checked`)].map(c => parseInt(c.value));
+      if (name && days.length) meetings.push({ name, blockKey, offset, duration, customStart, mode, days, interval, seasonFrom, seasonTo, notes });
+    } else {
+      const wdays = [...document.querySelectorAll(`[id^="wday-${id}-"]:checked`)].map(c => parseInt(c.value));
+      if (name && wdays.length) meetings.push({ name, blockKey, offset, duration, customStart, mode, wdays, interval, seasonFrom, seasonTo, notes });
+    }
+  });
+  return meetings;
+}
+
+// ─── Build events ───────────────────────────────────────────
+function buildEvents() {
+  const meetings = getRecurringMeetings();
+  if (!meetings.length) { showError('Add at least one meeting with a name and at least one day selected.'); return null; }
+
+  const events = [];
+  const summary = [];
+  const schoolDates = new Set(Object.keys(DATE_TO_DAY).map(normalizeDate));
+  const WEEKDAY_NAMES = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const INTERVAL_LABEL = {1:'', 2:'every other', 3:'every 3rd', 4:'every 4th', 5:'every 5th', 6:'every 6th'};
+
+  function flagIfSpecial(dateNorm, name, baseDescription, blockKey) {
+    const special = SPECIAL_SCHEDULE_NORM[dateNorm];
+    if (!special) return { summary: name, description: baseDescription };
+    // Clubs and Panther Time run at their normal times even on a Two-Hour
+    // Delay day, so a meeting placed there isn't actually affected.
+    if (special === 'Two-Hour Delay' && (blockKey === 'clubs' || blockKey === 'panther')) {
+      return { summary: name, description: baseDescription };
+    }
+    const prefix = special === 'Two-Hour Delay' ? 'LATE START' : 'CHECK 4 SPECIAL SCHED.';
+    return {
+      summary: `${prefix} - ${name}`,
+      description: `${baseDescription}\n(${special})`
+    };
+  }
+
+  meetings.forEach(m => {
+    const mFrom = new Date(m.seasonFrom + 'T00:00:00');
+    const mTo   = new Date(m.seasonTo   + 'T00:00:00');
+    const interval = m.interval || 1;
+    const cadence = INTERVAL_LABEL[interval] ? ` (${INTERVAL_LABEL[interval]} cycle)` : '';
+
+    // First, collect every occurrence date for this meeting (across all
+    // selected days/weekdays, after interval filtering) so each event's
+    // description can list the rest of the series.
+    let allDates = [];
+    if (m.mode === 'weekday') {
+      m.wdays.forEach(wday => {
+        const matches = [];
+        for (let d = new Date(mFrom); d <= mTo; d.setDate(d.getDate() + 1)) {
+          if (d.getDay() !== wday) continue;
+          const dateNorm = d.toISOString().split('T')[0];
+          if (!schoolDates.has(dateNorm)) continue; // skip non-school days
+          matches.push(dateNorm);
+        }
+        matches.forEach((dateNorm, idx) => { if (idx % interval === 0) allDates.push(dateNorm); });
+      });
+    } else {
+      m.days.forEach(dayNum => {
+        const matches = Object.entries(DATE_TO_DAY)
+          .filter(([, d]) => d === dayNum)
+          .map(([date]) => normalizeDate(date))
+          .filter(dateNorm => {
+            const d = new Date(dateNorm + 'T00:00:00');
+            return d >= mFrom && d <= mTo;
+          })
+          .sort();
+        matches.forEach((dateNorm, idx) => { if (idx % interval === 0) allDates.push(dateNorm); });
+      });
+    }
+    allDates = [...new Set(allDates)].sort();
+    summary.push({ name: m.name, dates: allDates });
+
+    allDates.forEach((dateNorm, i) => {
+      const baseDescription = m.mode === 'weekday'
+        ? `Weekly - ${WEEKDAY_NAMES[new Date(dateNorm + 'T00:00:00').getDay()]}${cadence}`
+        : `Recurring - Day ${NORM_TO_DAY[dateNorm]}${cadence}`;
+      const remaining = allDates.slice(i + 1);
+      const remainingText = remaining.length
+        ? `Remaining meetings: ${remaining.map(formatDateDisplay).join(', ')}`
+        : 'This is the last scheduled meeting in this series.';
+      const notes = (m.notes || '').trim();
+      const fullDescription = notes
+        ? `${notes}\n\n${baseDescription}\n${remainingText}`
+        : `${baseDescription}\n${remainingText}`;
+      const { summary: title, description } = flagIfSpecial(dateNorm, m.name, fullDescription, m.blockKey);
+      const { start, end } = computeStartEndForDate(m, dateNorm);
+      events.push({ date: dateNorm, startTime: start, endTime: end, summary: title, description });
+    });
+  });
+
+  return { events, summary };
+}
+
+// ─── ICS ──────────────────────────────────────────────────
+function icsDate(dateStr, timeStr) {
+  return dateStr.replace(/-/g,'') + 'T' + (timeStr||'08:00').replace(':','') + '00';
+}
+function escICS(s) {
+  if (!s) return '';
+  return s.replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\n/g, '\\n');
+}
+function uid() { return Math.random().toString(36).slice(2)+Date.now()+'@recurringmeetings'; }
+
+function sanitizeFilename(s) {
+  return (s || 'meeting').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'meeting';
+}
+
+function buildFilenameBase(summary) {
+  const names = summary.map(s => sanitizeFilename(s.name));
+  if (!names.length) return 'recurring-meetings';
+  if (names.length <= 3) return names.join('-and-');
+  return `${names.slice(0, 2).join('-and-')}-and-${names.length - 2}-more`;
+}
+
+function generateICS() {
+  const result = buildEvents();
+  if (!result) return;
+  const { events, summary } = result;
+  if (!events.length) { showError('No events found — check your season dates and day selections.'); return; }
+
+  const calName = summary.map(s => s.name).join(', ') || 'Recurring Meetings';
+  const lines = [
+    'BEGIN:VCALENDAR','VERSION:2.0',
+    'PRODID:-//Recurring Meetings//EN',
+    'CALSCALE:GREGORIAN','METHOD:PUBLISH',
+    `X-WR-CALNAME:${escICS(calName)}`,
+    'X-WR-TIMEZONE:America/New_York',
+  ];
+  events.forEach(ev => {
+    const eventLines = [
+      'BEGIN:VEVENT',
+      `UID:${uid()}`,
+      `DTSTAMP:${new Date().toISOString().replace(/[-:]/g,'').split('.')[0]}Z`,
+      `DTSTART:${icsDate(ev.date, ev.startTime)}`,
+      `DTEND:${icsDate(ev.date, ev.endTime||ev.startTime)}`,
+      `SUMMARY:${escICS(ev.summary)}`,
+      ev.description ? `DESCRIPTION:${escICS(ev.description)}` : null,
+      'END:VEVENT'
+    ].filter(Boolean);
+    lines.push(...eventLines);
+  });
+  lines.push('END:VCALENDAR');
+  const filename = `${buildFilenameBase(summary)}.ics`;
+  download(filename, lines.join('\r\n'), 'text/calendar; charset=utf-8');
+  showSuccess(`✓ Downloaded ${filename} with ${events.length} events`);
+  renderResultsPanel(summary);
+}
+
+function renderResultsPanel(summary) {
+  const panel = document.getElementById('resultsPanel');
+  if (!panel) return;
+  const totalEvents = summary.reduce((a, s) => a + s.dates.length, 0);
+  let html = `<div style="background:rgba(75,0,130,0.2);border:1px solid rgba(155,89,182,0.3);border-radius:12px;padding:20px;">`;
+  html += `<div style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:0.2em;color:var(--gold);text-transform:uppercase;margin-bottom:14px;">${totalEvents} total event${totalEvents===1?'':'s'} across ${summary.length} meeting${summary.length===1?'':'s'}</div>`;
+  summary.forEach(s => {
+    html += `<div style="margin-bottom:14px;">
+      <div style="font-size:14px;font-weight:600;color:var(--white);margin-bottom:4px;">${s.name} — ${s.dates.length} occurrence${s.dates.length===1?'':'s'}</div>
+      <div style="font-size:12.5px;color:rgba(250,250,250,0.7);line-height:1.6;">${s.dates.map(formatDateDisplay).join(', ')}</div>
+    </div>`;
+  });
+  html += `</div>`;
+  panel.innerHTML = html;
+  panel.style.display = 'block';
+}
+
+// ─── Utils ────────────────────────────────────────────────
+function download(filename, content, type) {
+  const blob = new Blob([content], { type });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+function showSuccess(msg) {
+  const el = document.getElementById('statusSuccess');
+  el.textContent = msg; el.style.display = 'block';
+  document.getElementById('statusError').style.display = 'none';
+  setTimeout(() => el.style.display = 'none', 7000);
+}
+function showError(msg) {
+  const el = document.getElementById('statusError');
+  el.textContent = msg; el.style.display = 'block';
+  document.getElementById('statusSuccess').style.display = 'none';
+  setTimeout(() => el.style.display = 'none', 7000);
+}
+
+// Start with one meeting row visible
+addMeeting();
+</script>
+</body>
+</html>
