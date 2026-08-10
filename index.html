@@ -81,6 +81,13 @@
     <h2>Add Recurring Meetings</h2>
     <p style="font-size:13px;color:var(--gray);margin-bottom:8px;">Add each meeting that repeats on specific rotation days (Day 1–8), or on regular weekdays. Every meeting only lands on actual school days. Pick a day first — the block list then shows exactly what's meeting in each slot that day.</p>
     <p class="block-note" style="margin-bottom:16px;">Meetings landing on a Two-Hour Delay day (Oct 14, Nov 11, Dec 2, 2026 or Feb 24, 2027) get flagged <strong style="color:var(--gold);">LATE START</strong> in the title, with times shifted automatically. Meetings on Oct 30, 2026 or Mar 2 &amp; 5, 2027 get flagged <strong style="color:var(--gold);">CHECK 4 SPECIAL SCHED.</strong> — those run a modified schedule too, but times aren't auto-adjusted.</p>
+
+    <div style="margin-bottom:20px;max-width:340px;">
+      <label style="font-size:11px;font-family:'DM Mono',monospace;letter-spacing:0.15em;text-transform:uppercase;color:var(--gold);display:block;margin-bottom:6px;">Your Email (Organizer)</label>
+      <input type="email" id="organizerEmail" placeholder="you@mastersny.org" style="padding:12px 14px;">
+      <p style="font-size:11.5px;color:var(--gray);margin-top:6px;">Applies to every meeting below — whoever runs this export is the organizer for that batch.</p>
+    </div>
+
     <div id="meetingsContainer"></div>
     <button class="btn-add" onclick="addMeeting()">+ Add Recurring Meeting</button>
   </div>
@@ -143,10 +150,17 @@
       <div style="border-top:1px solid rgba(155,89,182,0.2);padding-top:20px;margin-top:8px;">
         <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.2em;color:var(--gray);text-transform:uppercase;margin-bottom:10px;">Inviting Others</div>
         <p style="font-size:13px;color:rgba(250,250,250,0.7);line-height:1.7;margin-bottom:14px;">
-          Imported events land on your calendar only — they don't come with attendees built in. To bring other people onto a meeting, open that event in Outlook and use <strong style="color:var(--white)">Invite Attendees</strong> (or the <strong style="color:var(--white)">Scheduling Assistant</strong>) to add them, then send the update. Since each recurring meeting imports as a separate event rather than a single Outlook series, you'll need to do this on each occurrence you want shared — there's no one click that invites people to the whole run at once.
+          If you filled in the <strong style="color:var(--white)">Attendees</strong> field on a meeting, those emails are baked into every occurrence of that meeting. But importing a file only ever creates a personal appointment in Outlook — it can't dispatch an actual invitation or start RSVP tracking on its own. Open the event, confirm the attendees showed up (Outlook may or may not carry them over from an imported file — this varies), and hit <strong style="color:var(--white)">Send</strong> to actually invite them. Since each recurring meeting imports as a separate event rather than a single Outlook series, that's one Send per occurrence you want shared — there's no one click that invites people to the whole run at once.
         </p>
+
+        <div style="border:1px solid rgba(255,215,0,0.35);border-radius:10px;padding:16px;margin-bottom:14px;background:rgba(255,215,0,0.06);">
+          <p style="font-size:13px;color:rgba(250,250,250,0.85);line-height:1.7;margin:0;">
+            <strong style="color:var(--gold);">Before you hit Send</strong> — check <strong style="color:var(--white)">Response Options → Request Responses</strong> is turned on. This is what actually enables RSVP tracking, separate from just having attendees listed. Events built from an imported file (like these) don't reliably default this to on the way a brand-new Outlook meeting does — confirmed by testing, one imported event showed <em>"You haven't requested responses for this event"</em> under Tracking even with an attendee added and the invite sent. Look for it near the attendees / Scheduling Assistant area, or under a "…" more-options menu in the compose window.
+          </p>
+        </div>
+
         <p style="font-size:13px;color:rgba(250,250,250,0.7);line-height:1.7;margin-bottom:14px;">
-          Two things make that faster:
+          Two things make the Send step faster:
         </p>
         <ul style="font-size:13px;color:rgba(250,250,250,0.7);line-height:1.9;padding-left:20px;margin-bottom:0;">
           <li><strong style="color:var(--white)">Search + List view</strong> — in Outlook's Calendar search bar, type <code style="background:rgba(0,0,0,0.25);padding:1px 6px;border-radius:4px;">subject:"Meeting Name"</code> and press Enter. Results switch to List view as a flat, clickable list instead of scattered across the month grid, so you can move through every occurrence quickly.</li>
@@ -352,6 +366,12 @@ function addMeeting() {
     </div>
 
     <div style="margin-top:14px;">
+      <label style="font-size:11px;font-family:'DM Mono',monospace;letter-spacing:0.15em;text-transform:uppercase;color:var(--gold);display:block;margin-bottom:6px;">Attendees (optional)</label>
+      <input type="text" id="mattendees-${id}" placeholder="e.g. jsmith@mastersny.org, achen@mastersny.org" style="padding:12px 14px;">
+      <p style="font-size:11.5px;color:var(--gray);margin-top:6px;">Comma-separated emails. Pre-fills each event — you'll still need to open it in Outlook and hit Send to actually invite them.</p>
+    </div>
+
+    <div style="margin-top:14px;">
       <label style="font-size:11px;font-family:'DM Mono',monospace;letter-spacing:0.15em;text-transform:uppercase;color:var(--gold);display:block;margin-bottom:6px;">Notes (optional)</label>
       <textarea id="mnotes-${id}" placeholder="e.g. Google Doc, running agenda, etc" style="width:100%;background:rgba(26,0,51,0.6);border:1px solid rgba(155,89,182,0.4);border-radius:10px;color:var(--white);font-family:'DM Sans',sans-serif;font-size:14px;padding:12px 14px;min-height:60px;resize:vertical;outline:none;"></textarea>
       <p style="font-size:11.5px;color:var(--gray);margin-top:6px;">This same text is added to every occurrence of this meeting.</p>
@@ -424,8 +444,16 @@ function removeMeeting(id) {
   if (el) el.remove();
 }
 
+function parseEmails(str) {
+  return (str || '')
+    .split(',')
+    .map(s => s.trim())
+    .filter(s => s.includes('@'));
+}
+
 function getRecurringMeetings() {
   const meetings = [];
+  const organizerEmail = document.getElementById('organizerEmail')?.value.trim() || '';
   document.querySelectorAll('[id^="mname-"]').forEach(el => {
     const id = el.id.split('-')[1];
     const name = el.value.trim();
@@ -438,12 +466,13 @@ function getRecurringMeetings() {
     const seasonFrom = document.getElementById(`mfrom-${id}`)?.value || SEASON_DEFAULT_FROM;
     const seasonTo   = document.getElementById(`mto-${id}`)?.value   || SEASON_DEFAULT_TO;
     const notes = document.getElementById(`mnotes-${id}`)?.value.trim() || '';
+    const attendees = parseEmails(document.getElementById(`mattendees-${id}`)?.value);
     if (mode === 'rotation') {
       const days = [...document.querySelectorAll(`[id^="day-${id}-"]:checked`)].map(c => parseInt(c.value));
-      if (name && days.length) meetings.push({ name, blockKey, offset, duration, customStart, mode, days, interval, seasonFrom, seasonTo, notes });
+      if (name && days.length) meetings.push({ name, blockKey, offset, duration, customStart, mode, days, interval, seasonFrom, seasonTo, notes, organizerEmail, attendees });
     } else {
       const wdays = [...document.querySelectorAll(`[id^="wday-${id}-"]:checked`)].map(c => parseInt(c.value));
-      if (name && wdays.length) meetings.push({ name, blockKey, offset, duration, customStart, mode, wdays, interval, seasonFrom, seasonTo, notes });
+      if (name && wdays.length) meetings.push({ name, blockKey, offset, duration, customStart, mode, wdays, interval, seasonFrom, seasonTo, notes, organizerEmail, attendees });
     }
   });
   return meetings;
@@ -526,7 +555,7 @@ function buildEvents() {
         : `${baseDescription}\n${remainingText}`;
       const { summary: title, description } = flagIfSpecial(dateNorm, m.name, fullDescription, m.blockKey);
       const { start, end } = computeStartEndForDate(m, dateNorm);
-      events.push({ date: dateNorm, startTime: start, endTime: end, summary: title, description });
+      events.push({ date: dateNorm, startTime: start, endTime: end, summary: title, description, organizerEmail: m.organizerEmail, attendees: m.attendees });
     });
   });
 
@@ -577,6 +606,8 @@ function generateICS() {
       `DTEND:${icsDate(ev.date, ev.endTime||ev.startTime)}`,
       `SUMMARY:${escICS(ev.summary)}`,
       ev.description ? `DESCRIPTION:${escICS(ev.description)}` : null,
+      ev.organizerEmail ? `ORGANIZER:mailto:${ev.organizerEmail}` : null,
+      ...(ev.attendees || []).map(email => `ATTENDEE;RSVP=TRUE:mailto:${email}`),
       'END:VEVENT'
     ].filter(Boolean);
     lines.push(...eventLines);
