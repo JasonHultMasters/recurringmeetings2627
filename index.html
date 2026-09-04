@@ -27,7 +27,21 @@
   h1 { font-family: 'Bebas Neue', sans-serif; font-size: clamp(56px, 10vw, 96px); line-height: 0.9; letter-spacing: 0.02em; color: var(--white); margin-bottom: 8px; }
   h1 span { color: var(--gold); display: block; }
   .subtitle { font-size: 14px; color: var(--purple-light); font-weight: 300; letter-spacing: 0.05em; margin-top: 16px; }
+  .epigraph { font-size: 12.5px; color: var(--gray); font-style: italic; letter-spacing: 0.03em; margin-top: 14px; }
+  .epigraph cite { font-style: normal; color: var(--purple-light); }
   .gold-line { width: 80px; height: 3px; background: linear-gradient(90deg, var(--gold), var(--gold-deep)); margin: 24px auto; border-radius: 2px; }
+  .capabilities { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 28px; animation: fadeUp 0.5s ease both; }
+  .cap-col { border-radius: 14px; padding: 20px 22px; border: 1px solid rgba(155,89,182,0.25); background: rgba(75,0,130,0.18); }
+  .cap-does { border-color: rgba(255,215,0,0.28); background: rgba(255,215,0,0.05); }
+  .cap-doesnt { border-color: rgba(155,89,182,0.3); }
+  .cap-head { font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--gold); margin-bottom: 12px; }
+  .cap-doesnt .cap-head { color: var(--purple-light); }
+  .capabilities ul { list-style: none; margin: 0; padding: 0; }
+  .capabilities li { font-size: 12.5px; line-height: 1.5; color: rgba(250,250,250,0.82); padding-left: 16px; position: relative; margin-bottom: 9px; }
+  .capabilities li:last-child { margin-bottom: 0; }
+  .capabilities li::before { content: ''; position: absolute; left: 0; top: 7px; width: 5px; height: 5px; border-radius: 50%; background: var(--gold); }
+  .cap-doesnt li::before { background: var(--purple-light); }
+  @media (max-width: 600px) { .capabilities { grid-template-columns: 1fr; } }
   .step { background: rgba(75, 0, 130, 0.2); border: 1px solid rgba(155, 89, 182, 0.25); border-radius: 16px; padding: 32px; margin-bottom: 20px; backdrop-filter: blur(10px); transition: border-color 0.3s; animation: fadeUp 0.5s ease both; }
   .step:hover { border-color: rgba(255, 215, 0, 0.3); }
   .step:nth-child(1){animation-delay:0.1s}.step:nth-child(2){animation-delay:0.2s}.step:nth-child(3){animation-delay:0.3s}
@@ -72,8 +86,32 @@
     <div class="motto">✦ Do It With Thy Might ✦</div>
     <h1>RECURRING<span>MEETINGS</span></h1>
     <div class="subtitle">2026–2027 · Meetings on the 8-day rotation — imported to Outlook in seconds</div>
+    <div class="epigraph">"This time, like all times, is a very good one, if we but know what to do with it." — <cite>Ralph Waldo Emerson</cite></div>
     <div class="gold-line"></div>
   </header>
+
+  <div class="capabilities">
+    <div class="cap-col cap-does">
+      <div class="cap-head">✓ What this tool does</div>
+      <ul>
+        <li>Builds recurring meetings on the 8-day rotation (or Mon–Fri)</li>
+        <li>Auto-shifts times on known Late Start days</li>
+        <li>Flags special-schedule days in the event title</li>
+        <li>Adds a location and notes to every occurrence</li>
+        <li>Exports one .ics file you import into Outlook</li>
+      </ul>
+    </div>
+    <div class="cap-col cap-doesnt">
+      <div class="cap-head">✕ What it doesn't do</div>
+      <ul>
+        <li>Send invites or notify anyone — you open each event and hit Send</li>
+        <li>Track RSVPs on its own — turn on Request Responses first</li>
+        <li>Create one linked Outlook series — each occurrence imports separately</li>
+        <li>Sync or auto-update after import — re-export if the schedule changes</li>
+        <li>Adjust times for flag-only special days (assemblies, Founder's Day, etc.)</li>
+      </ul>
+    </div>
+  </div>
 
   <!-- STEP 1: Recurring Meetings -->
   <div class="step">
@@ -81,12 +119,6 @@
     <h2>Add Recurring Meetings</h2>
     <p style="font-size:13px;color:var(--gray);margin-bottom:8px;">Add each meeting that repeats on specific rotation days (Day 1–8), or on regular weekdays. Every meeting only lands on actual school days. Pick a day first — the block list then shows exactly what's meeting in each slot that day.</p>
     <p class="block-note" style="margin-bottom:16px;">Meetings landing on a Two-Hour Delay day (Oct 14, Nov 11, Dec 2, 2026 or Feb 24, 2027) get flagged <strong style="color:var(--gold);">LATE START</strong> in the title, with times shifted automatically. Meetings on Oct 30, 2026 or Mar 2 &amp; 5, 2027 get flagged <strong style="color:var(--gold);">CHECK 4 SPECIAL SCHED.</strong> — those run a modified schedule too, but times aren't auto-adjusted.</p>
-
-    <div style="margin-bottom:20px;max-width:340px;">
-      <label style="font-size:11px;font-family:'DM Mono',monospace;letter-spacing:0.15em;text-transform:uppercase;color:var(--gold);display:block;margin-bottom:6px;">Your Email (Organizer)</label>
-      <input type="email" id="organizerEmail" placeholder="you@mastersny.org" style="padding:12px 14px;">
-      <p style="font-size:11.5px;color:var(--gray);margin-top:6px;">Applies to every meeting below — whoever runs this export is the organizer for that batch.</p>
-    </div>
 
     <div id="meetingsContainer"></div>
     <button class="btn-add" onclick="addMeeting()">+ Add Recurring Meeting</button>
@@ -112,50 +144,32 @@
       <h2 style="font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:0.05em;color:var(--white);margin-bottom:24px;">Importing Into Outlook</h2>
 
       <p style="font-size:13px;color:rgba(250,250,250,0.7);margin-bottom:24px;line-height:1.7;">
-        Once you've downloaded your <strong style="color:var(--white)">.ics file</strong>, you have two ways to bring it into Outlook.
+        Once you've downloaded your <strong style="color:var(--white)">.ics file</strong>, here's the most reliable way to bring it into Outlook — it works the same in new Outlook on Mac and Windows, and in Outlook on the web.
       </p>
 
       <div style="border:1px solid rgba(255,215,0,0.25);border-radius:12px;padding:20px;margin-bottom:16px;background:rgba(255,215,0,0.04);">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
-          <span style="background:var(--gold);color:var(--dark);font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:0.05em;padding:2px 12px;border-radius:6px;">Option A</span>
-          <span style="font-size:15px;font-weight:600;color:var(--white);">Import to Your Primary Calendar</span>
-        </div>
-        <p style="font-size:13px;color:rgba(250,250,250,0.75);line-height:1.7;margin-bottom:12px;">
-          Adds events directly into your main calendar. Simple, but to remove them later you'll need to delete each event one at a time.
-        </p>
-        <ol style="font-size:13px;color:rgba(250,250,250,0.75);line-height:2;padding-left:20px;">
-          <li>Open Outlook and go to <strong style="color:var(--white)">File → Open &amp; Export → Import/Export</strong></li>
-          <li>Choose <strong style="color:var(--white)">Import an iCalendar (.ics) or vCalendar file</strong> and click Next</li>
-          <li>Browse to your downloaded <strong style="color:var(--white)">.ics file</strong> and select it</li>
+        <ol style="font-size:13px;color:rgba(250,250,250,0.75);line-height:2;padding-left:20px;margin:0;">
+          <li>Open Outlook and switch to the <strong style="color:var(--white)">Calendar</strong> view</li>
+          <li>In the left pane, click <strong style="color:var(--white)">Add calendar</strong></li>
+          <li>Choose <strong style="color:var(--white)">Upload from file</strong></li>
+          <li>Click <strong style="color:var(--white)">Browse</strong>, find your downloaded <strong style="color:var(--white)">.ics file</strong>, and select it</li>
+          <li>Under <strong style="color:var(--white)">Select a calendar</strong>, pick where the events should land — either your main calendar or a separate one (e.g. a "Meetings" calendar you can hide or delete all at once later)</li>
           <li>Click <strong style="color:var(--white)">Import</strong></li>
         </ol>
-      </div>
-
-      <div style="border:1px solid rgba(155,89,182,0.35);border-radius:12px;padding:20px;margin-bottom:8px;background:rgba(106,13,173,0.1);">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
-          <span style="background:var(--purple-mid);color:var(--white);font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:0.05em;padding:2px 12px;border-radius:6px;">Option B</span>
-          <span style="font-size:15px;font-weight:600;color:var(--white);">Add as a Separate Calendar</span>
-        </div>
-        <p style="font-size:13px;color:rgba(250,250,250,0.75);line-height:1.7;margin-bottom:12px;">
-          Creates a new calendar layer you can show, hide, or <strong style="color:var(--white)">delete all at once</strong> — recommended if you'll re-import each semester.
+        <p style="font-size:12px;color:var(--gray);line-height:1.6;margin-top:12px;margin-bottom:0;">
+          On a Mac, don't just double-click the .ics file — that usually sends it to the Apple Calendar app instead of Outlook. Use the Add calendar steps above. (If you're still on classic/legacy Outlook, <strong style="color:rgba(250,250,250,0.8)">File → Open &amp; Export → Import/Export</strong> also works.)
         </p>
-        <ol style="font-size:13px;color:rgba(250,250,250,0.75);line-height:2;padding-left:20px;">
-          <li>Open Outlook's <strong style="color:var(--white)">Calendar</strong> view</li>
-          <li>Right-click <strong style="color:var(--white)">My Calendars</strong> → <strong style="color:var(--white)">Add Calendar → Create New Blank Calendar</strong></li>
-          <li>Name it, e.g. <strong style="color:var(--white)">"Spring Meetings"</strong></li>
-          <li>Right-click it → <strong style="color:var(--white)">Import</strong>, then select your <strong style="color:var(--white)">.ics file</strong></li>
-        </ol>
       </div>
 
       <div style="border-top:1px solid rgba(155,89,182,0.2);padding-top:20px;margin-top:8px;">
         <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.2em;color:var(--gray);text-transform:uppercase;margin-bottom:10px;">Inviting Others</div>
         <p style="font-size:13px;color:rgba(250,250,250,0.7);line-height:1.7;margin-bottom:14px;">
-          If you filled in the <strong style="color:var(--white)">Attendees</strong> field on a meeting, those emails are baked into every occurrence of that meeting. But importing a file only ever creates a personal appointment in Outlook — it can't dispatch an actual invitation or start RSVP tracking on its own. Open the event, confirm the attendees showed up (Outlook may or may not carry them over from an imported file — this varies), and hit <strong style="color:var(--white)">Send</strong> to actually invite them. Since each recurring meeting imports as a separate event rather than a single Outlook series, that's one Send per occurrence you want shared — there's no one click that invites people to the whole run at once.
+          Imported events land on your calendar as personal appointments — they don't invite anyone on their own. To bring people onto a meeting, open the event in Outlook, add attendees, and hit <strong style="color:var(--white)">Send</strong>. Since each recurring meeting imports as a separate event rather than a single Outlook series, that's one Send per occurrence you want shared — there's no one click that invites people to the whole run at once.
         </p>
 
         <div style="border:1px solid rgba(255,215,0,0.35);border-radius:10px;padding:16px;margin-bottom:14px;background:rgba(255,215,0,0.06);">
           <p style="font-size:13px;color:rgba(250,250,250,0.85);line-height:1.7;margin:0;">
-            <strong style="color:var(--gold);">Before you hit Send</strong> — check <strong style="color:var(--white)">Response Options → Request Responses</strong> is turned on. This is what actually enables RSVP tracking, separate from just having attendees listed. Events built from an imported file (like these) don't reliably default this to on the way a brand-new Outlook meeting does — confirmed by testing, one imported event showed <em>"You haven't requested responses for this event"</em> under Tracking even with an attendee added and the invite sent. Look for it near the attendees / Scheduling Assistant area, or under a "…" more-options menu in the compose window.
+            <strong style="color:var(--gold);">Before you hit Send</strong> — check <strong style="color:var(--white)">Response Options → Request Responses</strong> is turned on. This is what actually enables RSVP tracking. Events built from an imported file (like these) don't reliably default this to on the way a brand-new Outlook meeting does — confirmed by testing, one imported event showed <em>"You haven't requested responses for this event"</em> under Tracking even after attendees were added and the invite sent. Look for it near the attendees / Scheduling Assistant area, or under a "…" more-options menu in the compose window.
           </p>
         </div>
 
@@ -366,9 +380,8 @@ function addMeeting() {
     </div>
 
     <div style="margin-top:14px;">
-      <label style="font-size:11px;font-family:'DM Mono',monospace;letter-spacing:0.15em;text-transform:uppercase;color:var(--gold);display:block;margin-bottom:6px;">Attendees (optional)</label>
-      <input type="text" id="mattendees-${id}" placeholder="e.g. jsmith@mastersny.org, achen@mastersny.org" style="padding:12px 14px;">
-      <p style="font-size:11.5px;color:var(--gray);margin-top:6px;">Comma-separated emails. Pre-fills each event — you'll still need to open it in Outlook and hit Send to actually invite them.</p>
+      <label style="font-size:11px;font-family:'DM Mono',monospace;letter-spacing:0.15em;text-transform:uppercase;color:var(--gold);display:block;margin-bottom:6px;">Location (optional)</label>
+      <input type="text" id="mlocation-${id}" placeholder="e.g. Room 200, Library, Zoom" style="padding:12px 14px;">
     </div>
 
     <div style="margin-top:14px;">
@@ -444,16 +457,8 @@ function removeMeeting(id) {
   if (el) el.remove();
 }
 
-function parseEmails(str) {
-  return (str || '')
-    .split(',')
-    .map(s => s.trim())
-    .filter(s => s.includes('@'));
-}
-
 function getRecurringMeetings() {
   const meetings = [];
-  const organizerEmail = document.getElementById('organizerEmail')?.value.trim() || '';
   document.querySelectorAll('[id^="mname-"]').forEach(el => {
     const id = el.id.split('-')[1];
     const name = el.value.trim();
@@ -466,13 +471,13 @@ function getRecurringMeetings() {
     const seasonFrom = document.getElementById(`mfrom-${id}`)?.value || SEASON_DEFAULT_FROM;
     const seasonTo   = document.getElementById(`mto-${id}`)?.value   || SEASON_DEFAULT_TO;
     const notes = document.getElementById(`mnotes-${id}`)?.value.trim() || '';
-    const attendees = parseEmails(document.getElementById(`mattendees-${id}`)?.value);
+    const location = document.getElementById(`mlocation-${id}`)?.value.trim() || '';
     if (mode === 'rotation') {
       const days = [...document.querySelectorAll(`[id^="day-${id}-"]:checked`)].map(c => parseInt(c.value));
-      if (name && days.length) meetings.push({ name, blockKey, offset, duration, customStart, mode, days, interval, seasonFrom, seasonTo, notes, organizerEmail, attendees });
+      if (name && days.length) meetings.push({ name, blockKey, offset, duration, customStart, mode, days, interval, seasonFrom, seasonTo, notes, location });
     } else {
       const wdays = [...document.querySelectorAll(`[id^="wday-${id}-"]:checked`)].map(c => parseInt(c.value));
-      if (name && wdays.length) meetings.push({ name, blockKey, offset, duration, customStart, mode, wdays, interval, seasonFrom, seasonTo, notes, organizerEmail, attendees });
+      if (name && wdays.length) meetings.push({ name, blockKey, offset, duration, customStart, mode, wdays, interval, seasonFrom, seasonTo, notes, location });
     }
   });
   return meetings;
@@ -555,7 +560,7 @@ function buildEvents() {
         : `${baseDescription}\n${remainingText}`;
       const { summary: title, description } = flagIfSpecial(dateNorm, m.name, fullDescription, m.blockKey);
       const { start, end } = computeStartEndForDate(m, dateNorm);
-      events.push({ date: dateNorm, startTime: start, endTime: end, summary: title, description, organizerEmail: m.organizerEmail, attendees: m.attendees });
+      events.push({ date: dateNorm, startTime: start, endTime: end, summary: title, description, location: m.location });
     });
   });
 
@@ -606,8 +611,7 @@ function generateICS() {
       `DTEND:${icsDate(ev.date, ev.endTime||ev.startTime)}`,
       `SUMMARY:${escICS(ev.summary)}`,
       ev.description ? `DESCRIPTION:${escICS(ev.description)}` : null,
-      ev.organizerEmail ? `ORGANIZER:mailto:${ev.organizerEmail}` : null,
-      ...(ev.attendees || []).map(email => `ATTENDEE;RSVP=TRUE:mailto:${email}`),
+      ev.location ? `LOCATION:${escICS(ev.location)}` : null,
       'END:VEVENT'
     ].filter(Boolean);
     lines.push(...eventLines);
